@@ -15,6 +15,21 @@ $ npm install --save routers
 Composes `promisedResolver` and `handlerResolver` with a response formatter based
 on `dataType`.
 
+The resolver will also have a method named `errorHandler` that you can use to handle
+middleware errors in a standard way (uses the error resolution and data formatter
+from the resolver).
+
+```javascript
+const app = express();
+const resolve = apiResolver('routes');
+
+// resolve to module at routes/users, method index
+app.get('/users', resolve('users#index'));
+
+app.use(resolve.errorHandler);
+```
+
+
 #### handlerResolver(handlerRootPathname)
 
 Maps a root path and string to file and method.
