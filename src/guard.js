@@ -9,10 +9,10 @@ function promisifyMiddleware(fn) {
   }
 }
 
-export default function(app, middleware, fn) {
-  if (middleware.length <= 1) {
-    middleware = promisifyMiddleware(middleware);
-  }
+export default function(app, ...middlewares) {
+  const fn = middlewares.pop();
+
+  middlewares = middlewares.map((m) => m.length <= 1 ? promisifyMiddleware(m) : m);
 
   const original = methods.reduce((o, m) => {
     o[m] = app[m];
@@ -20,8 +20,8 @@ export default function(app, middleware, fn) {
   }, {});
 
   methods.forEach(function(m) {
-    app[m] = function(route, handler) {
-      original[m].call(app, route, middleware, handler);
+    app[m] = function(route, ...handlers) {
+      original[m].call(app, route, ...middlewares, ...handlers);
     };
   });
 

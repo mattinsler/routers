@@ -1,37 +1,45 @@
 import path from 'path';
 
-class HandlerResolver {
-  constructor(root) {
-    this.root = path.resolve(process.cwd(), root || '');
+function defaultParseSpecToDescriptor(spec) {
+  var matches = spec.match(/^([^#]+)(#(.+))?$/);
+  if (!matches) { throw new Error('Invalid handler format'); }
+
+  return {
+    controller: matches[1],
+    action: matches[3]
+  };
+}
+
+function defaultDescriptorToHandler({ root }, { controller, action }) {
+  var handlerFile = require.resolve(path.join(root, controller));
+  var handlerModule = require(handlerFile);
+  if (!handlerModule[action]) {
+    throw new Error(`Could not find a method named ${action} in ${handlerFile}`);
   }
 
-  parseHandler(spec) {
-    var matches = spec.match(/^([^#]+)(#(.+))?$/);
-    if (!matches) { throw new Error('Invalid handler format'); }
+  return handlerModule[action];
+}
 
-    return {
-      controller: matches[1],
-      action: matches[3]
+class HandlerResolver {
+  constructor(root, opts = {}) {
+    this.root = path.resolve(process.cwd(), root || '');
+    this.opts = {
+      parseSpecToDescriptor: opts.parseSpecToDescriptor || defaultParseSpecToDescriptor,
+      descriptorToHandler: opts.descriptorToHandler || defaultDescriptorToHandler
     };
   }
 
-  resolve(handler) {
-    if (typeof(handler) !== 'string') { return handler; }
-
-    var parsed = this.parseHandler(handler);
-    if (!parsed.action) parsed.action = 'index';
-
-    var handlerFile = require.resolve(path.join(this.root, parsed.controller));
-    var handlerModule = require(handlerFile);
-    if (!handlerModule[parsed.action]) {
-      throw new Error('Could not find a method named ' + parsed.action + ' in ' + handlerFile);
+  resolve(spec) {
+    if (typeof(spec) === 'string') {
+      const { controller, action = 'index' } = this.opts.parseSpecToDescriptor(spec);
+      return this.opts.descriptorToHandler(this, { controller, action });
     }
 
-    return handlerModule[parsed.action];
+    return spec;
   }
 }
 
-export default function(root) {
-  var resolver = new HandlerResolver(root);
+export default function(root, opts) {
+  const resolver = new HandlerResolver(root, opts);
   return resolver.resolve.bind(resolver);
 }

@@ -9,9 +9,9 @@ const formatters = {
   }
 };
 
-function apiResolver(pathname, dataType = 'json') {
-  const resolver = handlerResolver(pathname);
-  const formatter = formatters[dataType];
+function apiResolver(pathname, { dataType, ...opts } = {}) {
+  const resolver = handlerResolver(pathname, opts);
+  const formatter = formatters[dataType || 'json'];
   const handleError = errorHandler('boom');
 
   const resolve = promisedResolver(
