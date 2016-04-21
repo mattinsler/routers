@@ -21,7 +21,8 @@ function classApiResolver(pathname, { dataType } = {}) {
         throw new Error(`Could not find a method named ${action} in the class exported from the ${controller} controller`);
       }
 
-      return context.handlerFiles[controller][action];
+      const instance = context.handlerFiles[controller];
+      return instance[action].bind(instance);
     }
   });
 }
