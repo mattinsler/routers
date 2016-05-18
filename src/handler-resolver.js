@@ -1,4 +1,5 @@
 import path from 'path';
+import es6require from '@mattinsler/es6require';
 
 function defaultParseSpecToDescriptor(spec) {
   var matches = spec.match(/^([^#]+)(#(.+))?$/);
@@ -12,7 +13,7 @@ function defaultParseSpecToDescriptor(spec) {
 
 function defaultDescriptorToHandler({ root }, { controller, action }) {
   var handlerFile = require.resolve(path.join(root, controller));
-  var handlerModule = require(handlerFile);
+  var handlerModule = es6require(handlerFile);
   if (!handlerModule[action]) {
     throw new Error(`Could not find a method named ${action} in ${handlerFile}`);
   }

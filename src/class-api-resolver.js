@@ -1,4 +1,5 @@
 import path from 'path';
+import es6require from '@mattinsler/es6require';
 import apiResolver from './api-resolver';
 
 function classApiResolver(pathname, { dataType } = {}) {
@@ -7,8 +8,7 @@ function classApiResolver(pathname, { dataType } = {}) {
     descriptorToHandler(context, { controller, action }) {
       if (!context.handlerFiles) { context.handlerFiles = {} }
       if (!context.handlerFiles[controller]) {
-        const handlerFile = require.resolve(path.join(context.root, controller));
-        const handlerModule = require(handlerFile);
+        const handlerModule = es6require(context.root, controller);
 
         if (typeof(handlerModule) !== 'function') {
           throw new Error(`Controllers must export a class (${handlerFile})`);
